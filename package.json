@@ -1,0 +1,15 @@
+{
+  "name": "backend-lavoro-ennova",
+  "version": "0.0.1",
+  "description": "Backend per progetto finale corso ennova-umana 2020",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Matteo Padovan, Cristian Bonanno, Chiara Todesco",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  }
+}
