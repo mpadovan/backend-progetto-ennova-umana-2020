@@ -1,26 +1,34 @@
+//richiesta moduli interni ed esterni
 const express = require('express');
 const app = express();
 const port = 3000;
 const db = require('./modules/db_manager');
+const Media = require('./modules/media');
 const { body, validationResult, param } = require('express-validator');
 
 app.use(express.static('./public'))
 app.use(express.json());
-
+ 
+// dichiarazione filtro di login:
+// un utente non registrato ha stato (is_completed) di default 0
+// appena viene registrato per la prima volta ha stato (is_completed) = 1
+// da quando ha uno stato = 1 può inserire i propri generi preferiti, se non inserisce generi la procedura continua
+// il suo stato viene incrementato a 2, da qui in poi lo stato non viene più variato
 let filter = async function (req, res, next) {
     let nickname;
     if(typeof req.params.nickname !== 'undefined') nickname = req.params.nickname
     else if(typeof req.body.nickname !== 'undefined') nickname = req.body.nickname
     else res.status(401).json({error: 'Unable to detect user nickname'});
-    let result = await db.query('SELECT nickname, COUNT(nickname), is_completed FROM Users WHERE nickname = ?', [nickname])
+    req.nickname = nickname;
+    let result = await db.query('SELECT nickname, COUNT(nickname), is_completed FROM users WHERE nickname = ?', [nickname])
     if (parseInt(result[0]['COUNT(nickname)']) > 0 && parseInt(result[0]['is_completed']) === 2) {
         req.isAuthorized = true;
     } else if (parseInt(result[0]['COUNT(nickname)']) > 0 && parseInt(result[0]['is_completed']) === 1) {
         try {
-            await db.query('UPDATE Users SET is_completed = 2', [])
+            await db.query('UPDATE users SET is_completed = 2', [])
             if(typeof req.body.genres !== 'undefined' && req.body.genres.length !== 0) {
                 for (let index = 0; index < req.body.genres.length; index++) {
-                    await db.query('INSERT INTO GenresUsers(nickname, genre_name) VALUES (?, ?)', [nickname, req.body.genres[index].genre_name]);        
+                    await db.query('INSERT INTO genresusers(nickname, genre_name) VALUES (?, ?)', [nickname, req.body.genres[index].genre_name]);        
                 }
             }
         } catch (error) {
@@ -29,7 +37,7 @@ let filter = async function (req, res, next) {
         req.isAuthorized = true;
     } else {
         try {
-            await db.query('INSERT INTO Users(nickname, sign_on_date, is_completed) VALUES (?, NOW(), 1)', [nickname])
+            await db.query('INSERT INTO users(nickname, sign_on_date, is_completed) VALUES (?, NOW(), 1)', [nickname])
         } catch (error) {
             console.log(error);
         }
@@ -37,17 +45,19 @@ let filter = async function (req, res, next) {
     }
     next()
 }
-
-app.get('/', filter, (req, res) => {
-    res.json()
-})
-
-app.get('/:nickname', filter, (req, res) => {
-    res.send(req.isAuthorized);
+//endpoint per l'home, vengono spediti al client i media più popolari, 
+//i più popolari in base ai suoi generi preferiti e le nuove uscite
+app.get('/:nickname', filter, async (req, res) => {
+    let a = await Promise.all([Media.getMostPopularMedias(), Media.getTopMediasByGenre(req.nickname), Media.getNewReleases()]);
+    let obj = {
+        popular: a[0],
+        topByGenre: a[1],
+        newReleases: a[2]
+    }
+    res.json(obj);
 });
 
 app.get('/favourites/:nickname', filter, (req, res) => {
-
 });
 
 app.get('/details/:nickname/:title/:publishing_date', filter, (req, res) => {
