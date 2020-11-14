@@ -1,12 +1,16 @@
 //richiesta moduli interni ed esterni
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const port = 3000;
 const db = require('./modules/db_manager');
 const Media = require('./modules/media');
-const { body, validationResult, param } = require('express-validator');
+const Reviews = require('./modules/reviews');
+const Favourites = require('./modules/favourites');
+const Purchases = require('./modules/purchases');
 
-app.use(express.static('./public'))
+app.use(cors());
+app.use(express.static('./public'));
 app.use(express.json());
  
 // dichiarazione filtro di login:
@@ -57,11 +61,48 @@ app.get('/:nickname', filter, async (req, res) => {
     res.json(obj);
 });
 
-app.get('/favourites/:nickname', filter, (req, res) => {
+app.post('/favourite/:nickname/:title/:publishing_date', filter, async (req, res) => {
+    try {
+        const favourite = await Favourites.setNewFavourite(req.params.nickname, req.params.title, req.params.publishing_date)
+        res.json({favourite: favourite, title: req.params.title, publishing_date: req.params.publishing_date});
+    } catch (error) {
+        res.json({error: error, title: req.params.title, publishing_date: req.params.publishing_date});
+    }
 });
 
-app.get('/details/:nickname/:title/:publishing_date', filter, (req, res) => {
+app.get('/is_favourite/:nickname/:title/:publishing_date', filter, async (req, res) => {
+    res.json({isFav: await Favourites.isFavouriteByUserNickname(req.params.nickname, req.params.publishing_date, req.params.title), title: req.params.title, publishing_date: req.params.publishing_date});
+});
 
+app.get('/reviews/:nickname/:title/:publishing_date', filter, async (req, res) => {
+    res.json({reviews: await Reviews.getReviewsByMedia(req.params.publishing_date, req.params.title), title: req.params.title, publishing_date: req.params.publishing_date});
+});
+
+app.post('/rating/:nickname/:title/:publishing_date', filter, async (req, res) => {
+    try {
+        const reviews = await Reviews.setNewReview(req.params.nickname, req.params.publishing_date, req.params.title, req.body.comment != undefined ? req.body.comment : '', req.body.rating)
+        res.json({reviews: reviews, title: req.params.title, publishing_date: req.params.publishing_date});
+    } catch (error) {
+        res.json({error: error, title: req.params.title, publishing_date: req.params.publishing_date});
+    }
+});
+
+app.get('/has_purchased/:nickname/:title/:publishing_date', filter, async (req, res) => {
+    res.json({bought: await Purchases.checkPurchase(req.params.nickname, req.params.title, req.params.publishing_date), title: req.params.title, publishing_date: req.params.publishing_date});
+});
+
+app.post('/purchase/:nickname/:title/:publishing_date', filter, async (req, res) => {
+    try {
+        const purchase = await Purchases.setNewPurchase(req.params.nickname, req.params.title, req.params.publishing_date)
+        res.json({purchase: purchase, title: req.params.title, publishing_date: req.params.publishing_date});
+    } catch (error) {
+        res.json({error: error, title: req.params.title, publishing_date: req.params.publishing_date});
+    }
+});
+
+//restituisce il ratin gmedio per ogni media
+app.get('/rating/:nickname/:title/:publishing_date', filter, async (req, res) => {
+    res.json({avg: await Reviews.calculateAvaregeRating(req.params.publishing_date, req.params.title), title: req.params.title, publishing_date: req.params.publishing_date});
 });
 
 /*
