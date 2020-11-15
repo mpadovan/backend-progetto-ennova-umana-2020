@@ -158,7 +158,7 @@ app.delete('/examples/:id', async (req, res) => {
 });
 */
 app.listen(port, async () => {
-    await db.connect('progetto', '', 'progetto_ennova_umana', '192.168.64.2');
+    await db.connect('root', '', 'progetto_ennova_umana', 'localhost');
     console.log('db connected with id: ' + db.getThreadId())
     console.log(`express listening at localhost: ${port}`);
 }) 
