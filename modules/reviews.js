@@ -12,7 +12,6 @@ module.exports = {
     calculateAvaregeRating: async (publishing_date, title) =>{
         let queryRating = await db.query('SELECT AVG(rating) FROM reviews WHERE media_title=? AND media_publishing_date=?',
         [title, new Date(publishing_date)]);
-        console.log(queryRating);
         return queryRating[0]['AVG(rating)'];
     },
 
