@@ -52,12 +52,34 @@ let filter = async function (req, res, next) {
 //endpoint per l'home, vengono spediti al client i media più popolari, 
 //i più popolari in base ai suoi generi preferiti e le nuove uscite
 app.get('/:nickname', filter, async (req, res) => {
-    let a = await Promise.all([Media.getMostPopularMedias(), Media.getTopMediasByGenre(req.nickname), Media.getNewReleases()]);
+    let a = await Promise.all([Media.getMostPopularMedias(null), Media.getTopMediasByGenre(req.nickname, null), Media.getNewReleases(null)]);
     let obj = {
         popular: a[0],
         topByGenre: a[1],
         newReleases: a[2]
     }
+    res.json(obj);
+});
+
+app.get('/film/:nickname', filter, async (req, res) => {
+    let a = await Promise.all([Media.getMostPopularMedias(true), Media.getTopMediasByGenre(req.nickname, true), Media.getNewReleases(true)]);
+    let obj = {
+        popular: a[0],
+        topByGenre: a[1],
+        newReleases: a[2]
+    }
+    console.log(a)
+    res.json(obj);
+});
+
+app.get('/series/:nickname', filter, async (req, res) => {
+    let a = await Promise.all([Media.getMostPopularMedias(false), Media.getTopMediasByGenre(req.nickname, false), Media.getNewReleases(false)]);
+    let obj = {
+        popular: a[0],
+        topByGenre: a[1],
+        newReleases: a[2]
+    }
+    console.log(a)
     res.json(obj);
 });
 
@@ -158,7 +180,7 @@ app.delete('/examples/:id', async (req, res) => {
 });
 */
 app.listen(port, async () => {
-    await db.connect('root', '', 'progetto_ennova_umana', 'localhost');
+    await db.connect('progetto', '', 'progetto_ennova_umana', '192.168.64.2');
     console.log('db connected with id: ' + db.getThreadId())
     console.log(`express listening at localhost: ${port}`);
 }) 

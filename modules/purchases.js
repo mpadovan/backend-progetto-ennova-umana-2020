@@ -5,7 +5,6 @@ module.exports = {
     checkPurchase: async (nickname, title, publishing_date) => {
         let queryControl = await db.query('SELECT COUNT(*) FROM purchases WHERE user_nickname=? AND ' +
             'media_title=? AND media_publishing_date=?', [nickname, title, new Date(publishing_date)]);
-        console.log(queryControl)
         if (parseInt(queryControl[0]['COUNT(*)']) === 0) {
             return false;
         }
