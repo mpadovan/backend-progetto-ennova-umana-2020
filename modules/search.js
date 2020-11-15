@@ -16,7 +16,7 @@ module.exports = {
         if (options.genre === undefined) {
             conditions += " AND genre=genre";
         }else {
-            condition += " AND genre=" + db.escape(options.genre);
+            conditions += " AND genre=" + db.escape(options.genre);
         }
 
         if (options.title === undefined){
@@ -31,26 +31,26 @@ module.exports = {
             conditions += " AND quality=" + db.escape(options.quality);
         }
 
-        if (options.price.value === undefined){
+        if (options.price === undefined){
             conditions += " AND price=price";
         }else {
             switch (options.price.operation){
                 case 0:
-                    conditions += " AND price=" + db.escape(options.price.value);
+                    conditions += " AND CAST( price as DECIMAL) = CAST(" + db.escape(parseFloat(options.price.value)) + "AS DECIMAL)";
                     break;
                 case 1:
-                    conditions += " AND price<=" + db.escape(options.price.value);
+                    conditions += " AND price<=" + db.escape(parseFloat(options.price.value));
                     break;
                 case 2:
-                    conditions += " AND price>=" + db.escape(options.price.value);
+                    conditions += " AND price>=" + db.escape(parseFloat(options.price.value));
                     break;
                 default:
-                    throw "Wrong option choice. Please choose another option";
+                    throw "Wrong operation choice. Please choose another operation";
             }
             
         }
 
-        if (options.views_count.value === undefined){
+        if (options.views_count === undefined){
             conditions += " AND views_count=views_count";
         }else {
             switch (options.views_count.operation){
@@ -71,13 +71,14 @@ module.exports = {
         if (options.director_name === undefined){
             conditions += " AND director_name=director_name";
         }else {
-            conditions += " AND director_name LIKE %" + db.escape(options.director_name) + "%"; 
+            conditions += " AND director_name LIKE " + db.escape("%"+ options.director_name + "%"); 
+            console.log(conditions) ;
         }
 
         if(options.actors === undefined){
             conditions += " AND actors=actors";
         }else {
-            conditions += " AND actors LIKE %" + db.escape(options.actors) + "%";
+            conditions += " AND actors LIKE " + db.escape("%" + options.actors + "%");
         }
         
         let querySearch = await db.query('SELECT * FROM media WHERE available=true' + conditions, []);

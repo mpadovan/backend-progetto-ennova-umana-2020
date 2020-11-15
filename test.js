@@ -3,9 +3,8 @@
     const db_manager = require('./modules/db_manager')
 
     db_manager.connect("root", "", "progetto_ennova_umana");
-    console.log(await search.getMediasByOptions({title:"Tolo Tolo"}));
+    console.log(await search.getMediasByOptions({actors: "l."}));
 })()
 
 
-//{genre: "void", title: "Tolo Tolo", quality: "void", price: {value:"void", operation: "void"}, 
-//views_count:{value:"void", operation: "void"}, director_name: "void", actors: "void"}
+
